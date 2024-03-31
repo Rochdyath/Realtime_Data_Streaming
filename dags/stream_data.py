@@ -1,5 +1,6 @@
 from kafka import KafkaProducer
 import requests as rq
+import logging
 import time
 import json
 
@@ -34,14 +35,16 @@ def format_data(response):
     return data
 
 def stream_data():
-    response = extract_data()
-    data = format_data(response)
-    
     producer = KafkaProducer(bootstrap_servers=['broker:29092'], max_block_ms=5000)
+    current_time = time.time()
     
-    producer.send('users_created', json.dumps(data).encode('utf-8'))
-    
-    # return data
-    # print(json.dumps(data, indent=4))
-
-stream_data()
+    while True:
+        if time.time() > current_time + 60:
+            break
+        try:
+            response = extract_data()
+            data = format_data(response)
+            producer.send('users_created', json.dumps(data).encode('utf-8'))
+        except Exception as error:
+            logging.error(f"Une erreur est survenue: {error}")
+            continue
