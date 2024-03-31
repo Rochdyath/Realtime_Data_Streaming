@@ -1,4 +1,6 @@
+from kafka import KafkaProducer
 import requests as rq
+import time
 import json
 
 
@@ -34,5 +36,12 @@ def format_data(response):
 def stream_data():
     response = extract_data()
     data = format_data(response)
-    return data
+    
+    producer = KafkaProducer(bootstrap_servers=['localhost:9092'], max_block_ms=5000)
+    
+    producer.send('users_created', json.dumps(data).encode('utf-8'))
+    
+    # return data
     # print(json.dumps(data, indent=4))
+
+stream_data()
